@@ -28,7 +28,7 @@ function AGServer(options) {
     ackTimeout: 10000,
     handshakeTimeout: 10000,
     strictHandshake: true,
-    pingTimeout: 20000,
+    pingTimeout: 30000,
     pingTimeoutDisabled: false,
     pingInterval: 8000,
     origins: '*:*',
