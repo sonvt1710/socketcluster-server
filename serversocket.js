@@ -19,6 +19,7 @@ const AuthTokenError = scErrors.AuthTokenError;
 const BrokerError = scErrors.BrokerError;
 
 const HANDSHAKE_REJECTION_STATUS_CODE = 4008;
+const PONG_RESET_FREQUENCY_DIVISOR = 4;
 
 function AGServerSocket(id, server, socket, protocolVersion) {
   AsyncStreamEmitter.call(this);
@@ -81,6 +82,7 @@ function AGServerSocket(id, server, socket, protocolVersion) {
   this._batchingIntervalId = null;
   this._cid = 1;
   this._callbackMap = {};
+  this._lastPongResetTime = 0;
 
   this.channelSubscriptions = {};
   this.channelSubscriptionsCount = 0;
@@ -137,6 +139,12 @@ function AGServerSocket(id, server, socket, protocolVersion) {
 
     if (isPong) {
       this._resetPongTimeout();
+    } else {
+      // Reset pong timeout for regular messages if enough time has passed
+      let now = Date.now();
+      if (now - this._lastPongResetTime > this.server.pingTimeout / PONG_RESET_FREQUENCY_DIVISOR) {
+        this._resetPongTimeout();
+      }
     }
 
     if (this.server.hasMiddleware(this.server.MIDDLEWARE_INBOUND_RAW)) {
@@ -809,6 +817,7 @@ AGServerSocket.prototype._resetPongTimeout = function () {
     this._destroy(4001);
     this.socket.close(4001);
   }, this.server.pingTimeout);
+  this._lastPongResetTime = Date.now();
 };
 
 AGServerSocket.prototype._nextCallId = function () {
