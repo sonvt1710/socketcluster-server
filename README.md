@@ -30,7 +30,7 @@ let agServer = socketClusterServer.attach(httpServer);
     (async () => {
       // Set up a loop to handle and respond to RPCs for a procedure.
       for await (let req of socket.procedure('customProc')) {
-        if (req.data.bad) {
+        if (!req.data) {
           let error = new Error('Server failed to execute the procedure');
           error.name = 'BadCustomError';
           req.error(error);
