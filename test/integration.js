@@ -2,11 +2,27 @@ const assert = require('assert');
 const socketClusterServer = require('../');
 const AGAction = require('../action');
 const socketClusterClient = require('socketcluster-client');
-const localStorage = require('localStorage');
 const AGSimpleBroker = require('ag-simple-broker');
 
 // Add to the global scope like in browser.
-global.localStorage = localStorage;
+// Simple in-memory localStorage implementation for testing
+const storage = {};
+global.localStorage = {
+  setItem: (key, value) => {
+    storage[key] = String(value);
+  },
+  getItem: (key) => {
+    return storage[key] || null;
+  },
+  removeItem: (key) => {
+    delete storage[key];
+  },
+  clear: () => {
+    for (let key in storage) {
+      delete storage[key];
+    }
+  }
+};
 
 let clientOptions;
 let serverOptions;
